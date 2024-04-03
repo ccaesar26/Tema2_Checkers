@@ -14,6 +14,11 @@ namespace Checkers.Models
             Color = color;
         }
 
-        public abstract IEnumerable<int> GetWays(Position currentPosition);
+        public bool IsUpgradeable(Position position)
+        {
+            return Color == EPieceColor.Black ? position.Row == 0 : position.Row == 7;
+        }
+
+        public abstract IEnumerable<int> GetWays();
     }
 }

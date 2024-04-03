@@ -6,19 +6,11 @@ namespace Checkers.Models
 {
     public class Game
     {
-        private readonly Board _board;
-        private readonly List<IGameListener> _listeners = new List<IGameListener>();
+        private readonly Board _board = new();
+        private EPieceColor _currentPlayer = EPieceColor.Black;
+        private readonly List<IGameListener> _listeners = [];
         
-        private EPieceColor _currentPlayer;
-        private EState _state;
-
-        public Game()
-        {
-            _board = new Board();
-            _board.Initialize();
-            _currentPlayer = EPieceColor.White;
-            _state = EState.Playing;
-        }
+        private EState _state = EState.Playing;
 
         public void MakeMove(Position from, Position to)
         {
@@ -34,6 +26,7 @@ namespace Checkers.Models
             }
 
             _board.MovePiece(from, to);
+            NotifyMoveMade(from, to);
             
             if (_board.CheckForWin())
             {
@@ -46,6 +39,7 @@ namespace Checkers.Models
         private void SwitchPlayer()
         {
             _currentPlayer = _currentPlayer == EPieceColor.White ? EPieceColor.Black : EPieceColor.White;
+            NotifyPlayerChanged(_currentPlayer);
         }
         
         public void AddListener(IGameListener listener)
@@ -81,10 +75,31 @@ namespace Checkers.Models
                 listener.OnPieceUpdated(position, color);
             }
         }
+        
+        private void NotifyPlayerChanged(EPieceColor currentPlayer)
+        {
+            foreach (var listener in _listeners)
+            {
+                listener.OnPlayerChanged(currentPlayer);
+            }
+        }
 
         public Piece GetPiece(Position position)
         {
             return _board.GetPiece(position);
+        }
+
+        public IEnumerable<Position> GetPossibleMoves(Position position)
+        {
+            if (_state != EState.Playing)
+            {
+                throw new InvalidOperationException("The game is over.");
+            }
+            if (_board.GetPiece(position)?.Color != _currentPlayer)
+            {
+                throw new InvalidOperationException("It is not the current player's turn.");
+            }
+            return _board.GetPossibleMoves(position);
         }
     }
 }

@@ -1,14 +1,8 @@
 ﻿namespace Checkers.Models
 {
-    public struct Position
+    public readonly struct Position(int row, int column)
     {
-        public int Row { get; }
-        public int Column { get; }
-
-        public Position(int row, int column)
-        {
-            Row = row;
-            Column = column;
-        }
+        public int Row { get; } = row;
+        public int Column { get; } = column;
     }
 }

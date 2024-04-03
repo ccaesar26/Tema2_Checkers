@@ -1,0 +1,40 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\cezar\\OneDrive - Universitatea Transilvania din Brasov\\MI - IA - an II\\MVP\\Tema2_Checkers\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EEC7B863-AEA1-43DD-A564-3D88E0095EEE}|Checkers\\Checkers.csproj|c:\\users\\cezar\\onedrive - universitatea transilvania din brasov\\mi - ia - an ii\\mvp\\tema2_checkers\\checkers\\views\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{EEC7B863-AEA1-43DD-A564-3D88E0095EEE}|Checkers\\Checkers.csproj|solutionrelative:checkers\\views\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\cezar\\OneDrive - Universitatea Transilvania din Brasov\\MI - IA - an II\\MVP\\Tema2_Checkers\\Checkers\\Views\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "Checkers\\Views\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\cezar\\OneDrive - Universitatea Transilvania din Brasov\\MI - IA - an II\\MVP\\Tema2_Checkers\\Checkers\\Views\\MainWindow.xaml",
+              "RelativeToolTip": "Checkers\\Views\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-04-03T06:30:15.745Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

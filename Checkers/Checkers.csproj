@@ -14,6 +14,7 @@
         <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
         <WarningLevel>4</WarningLevel>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -51,12 +52,10 @@
             <Generator>MSBuild:Compile</Generator>
             <SubType>Designer</SubType>
         </ApplicationDefinition>
+        <Compile Include="Commands\RelayCommand.cs" />
+        <Compile Include="Services\GameOperations.cs" />
         <Compile Include="ViewModels\BaseViewModel.cs" />
         <Compile Include="ViewModels\GameViewModel.cs" />
-        <Compile Include="Views\Converters\CheckerboardFillConverter.cs" />
-        <Compile Include="Views\GamePage.xaml.cs">
-          <DependentUpon>GamePage.xaml</DependentUpon>
-        </Compile>
         <Compile Include="App.xaml.cs">
             <DependentUpon>App.xaml</DependentUpon>
             <SubType>Code</SubType>
@@ -65,7 +64,6 @@
           <DependentUpon>MainWindow.xaml</DependentUpon>
           <SubType>Code</SubType>
         </Compile>
-        <Page Include="Views\GamePage.xaml" />
         <Page Include="Views\MainWindow.xaml">
           <Generator>MSBuild:Compile</Generator>
           <SubType>Designer</SubType>
@@ -97,14 +95,15 @@
     </ItemGroup>
     <ItemGroup>
         <None Include="App.config" />
+        <Resource Include="Assets\icon.png" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="Assets\black_king.png" />
-      <Content Include="Assets\black_man.png" />
-      <Content Include="Assets\board.png" />
-      <Content Include="Assets\empty.png" />
-      <Content Include="Assets\white_king.png" />
-      <Content Include="Assets\white_man.png" />
+      <Resource Include="Assets\black_king.png" />
+      <Resource Include="Assets\black_man.png" />
+      <Resource Include="Assets\board.png" />
+      <Resource Include="Assets\empty.png" />
+      <Resource Include="Assets\white_king.png" />
+      <Resource Include="Assets\white_man.png" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
 </Project>

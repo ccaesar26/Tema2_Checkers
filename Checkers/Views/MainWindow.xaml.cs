@@ -1,4 +1,8 @@
-﻿namespace Checkers
+﻿using System.Windows.Controls;
+using System.Windows.Input;
+using Checkers.ViewModels;
+
+namespace Checkers
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -8,7 +12,16 @@
         public MainWindow()
         {
             InitializeComponent();
-            Content = new Views.GamePage();
         }
+        
+        private void Image_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not Image { DataContext: BoardSquare boardSquare }) return;
+            if (DataContext is GameViewModel { PieceClickedCommand: not null } viewModel)
+            {
+                viewModel.PieceClickedCommand.Execute(boardSquare);
+            }
+        }
+
     }
 }

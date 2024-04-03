@@ -9,7 +9,7 @@ namespace Checkers.Models
         {
         }
         
-        public override IEnumerable<int> GetWays(Position currentPosition)
+        public override IEnumerable<int> GetWays()
         {
             return new[] { -1, 1 };
         }

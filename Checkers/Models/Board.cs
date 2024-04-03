@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Checkers.Models
@@ -12,9 +14,10 @@ namespace Checkers.Models
         {
             Size = size;
             Pieces = new Piece[size, size];
+            Initialize();
         }
 
-        public void Initialize()
+        private void Initialize()
         {
             for (var row = 0; row < Size; row++)
             {
@@ -22,11 +25,11 @@ namespace Checkers.Models
                 {
                     if (row < 3 && (row + column) % 2 == 1)
                     {
-                        Pieces[row, column] = new Man(EPieceColor.Black);
+                        Pieces[row, column] = new Man(EPieceColor.White);
                     }
                     else if (row > Size - 4 && (row + column) % 2 == 1)
                     {
-                        Pieces[row, column] = new Man(EPieceColor.White);
+                        Pieces[row, column] = new Man(EPieceColor.Black);
                     }
                 }
             }
@@ -47,14 +50,30 @@ namespace Checkers.Models
                 throw new System.InvalidOperationException("Invalid move.");
             }
 
-            if (IsMoveJump(currentPosition, newPosition))
+            var upgradeNeeded = false;
+            if (IsSimpleMove(currentPosition, newPosition))
             {
-                MakeJump(currentPosition, newPosition);
+                upgradeNeeded = piece.IsUpgradeable(newPosition);
             }
             else
             {
-                Pieces[newPosition.Row, newPosition.Column] = piece;
-                Pieces[currentPosition.Row, currentPosition.Column] = null;
+                var captures = FindJumpCaptures(currentPosition, newPosition);
+                foreach (var capture in captures)
+                {
+                    Pieces[capture.Row, capture.Column] = null;
+                    if (piece.IsUpgradeable(new Position(capture.Row + piece.GetWays().First(), capture.Column)))
+                    {
+                        upgradeNeeded = true;
+                    }
+                }
+            }
+            
+            Pieces[newPosition.Row, newPosition.Column] = piece;
+            Pieces[currentPosition.Row, currentPosition.Column] = null;
+            
+            if (upgradeNeeded)
+            {
+                UpdatePiece(newPosition);
             }
         }
 
@@ -62,12 +81,12 @@ namespace Checkers.Models
         {
             var piece = Pieces[position.Row, position.Column];
             var moves = new List<Position>();
-            var ways = piece.GetWays(position);
+            var ways = piece.GetWays();
 
             foreach (var way in ways)
             {
                 // Right side
-                if (position.Column + 1 < Size && position.Row + way < Size)
+                if (position.Column + 1 < Size && position.Row + way >= 0 && position.Row + way < Size)
                 {
                     var rightPosition = new Position(position.Row + way, position.Column + 1);
                     if (Pieces[rightPosition.Row, rightPosition.Column] == null)
@@ -76,12 +95,12 @@ namespace Checkers.Models
                     }
                     else if (IsPositionOccupied(rightPosition, piece.Color.Opposite()))
                     {
-                        moves.AddRange(GetJumps(rightPosition));
+                        moves.AddRange(GetJumps(position, piece));
                     }
                 }
 
                 // Left side
-                if (position.Column - 1 >= 0 && position.Row + way < Size)
+                if (position.Column - 1 >= 0 && position.Row + way >= 0 && position.Row + way < Size)
                 {
                     var leftPosition = new Position(position.Row + way, position.Column - 1);
                     if (Pieces[leftPosition.Row, leftPosition.Column] == null)
@@ -90,7 +109,7 @@ namespace Checkers.Models
                     }
                     else if (IsPositionOccupied(leftPosition, piece.Color.Opposite()))
                     {
-                        moves.AddRange(GetJumps(leftPosition));
+                        moves.AddRange(GetJumps(position, piece));
                     }
                 }
             }
@@ -98,48 +117,51 @@ namespace Checkers.Models
             return moves;
         }
 
-        private IEnumerable<Position> GetJumps(Position position)
+        private IEnumerable<Position> GetJumps(Position position, Piece piece, ISet<Position> visited = null)
         {
-            var piece = Pieces[position.Row, position.Column];
             var jumps = new List<Position>();
+            
+            visited ??= new HashSet<Position>();
 
-            if (piece.Color.IsUpgradable(position))
+            if (piece.IsUpgradeable(position))
             {
                 piece = new King(piece.Color);
             }
 
-            var ways = piece.GetWays(position);
+            var ways = piece.GetWays();
 
             foreach (var way in ways)
             {
                 // Right side
-                if (position.Column + 2 < Size && position.Row + way < Size)
+                if (position.Column + 2 < Size && position.Row + way * 2 >= 0 && position.Row + way * 2 < Size)
                 {
-                    var rightPosition = new Position(position.Row + way, position.Column + 1);
-                    if (Pieces[rightPosition.Row, rightPosition.Column] != null &&
-                        IsPositionOccupied(rightPosition, piece.Color.Opposite()))
+                    var opponentPosition = new Position(position.Row + way, position.Column + 1);
+                    if (Pieces[opponentPosition.Row, opponentPosition.Column] != null &&
+                        IsPositionOccupied(opponentPosition, piece.Color.Opposite()))
                     {
                         var rightJumpPosition = new Position(position.Row + way * 2, position.Column + 2);
-                        if (Pieces[rightJumpPosition.Row, rightJumpPosition.Column] == null)
+                        if (Pieces[rightJumpPosition.Row, rightJumpPosition.Column] == null && !visited.Contains(rightJumpPosition))
                         {
                             jumps.Add(rightJumpPosition);
-                            jumps.AddRange(GetJumps(rightJumpPosition));
+                            visited.Add(rightJumpPosition);
+                            jumps.AddRange(GetJumps(rightJumpPosition, piece, visited));
                         }
                     }
                 }
 
                 // Left side
-                if (position.Column - 2 >= 0)
+                if (position.Column - 2 >= 0 && position.Row + way * 2 >= 0 && position.Row + way * 2 < Size)
                 {
-                    var leftPosition = new Position(position.Row + way, position.Column - 1);
-                    if (Pieces[leftPosition.Row, leftPosition.Column] == null &&
-                        IsPositionOccupied(leftPosition, piece.Color.Opposite()))
+                    var opponentPosition = new Position(position.Row + way, position.Column - 1);
+                    if (Pieces[opponentPosition.Row, opponentPosition.Column] != null &&
+                        IsPositionOccupied(opponentPosition, piece.Color.Opposite()))
                     {
                         var leftJumpPosition = new Position(position.Row + way * 2, position.Column - 2);
-                        if (Pieces[leftJumpPosition.Row, leftJumpPosition.Column] == null)
+                        if (Pieces[leftJumpPosition.Row, leftJumpPosition.Column] == null && !visited.Contains(leftJumpPosition))
                         {
                             jumps.Add(leftJumpPosition);
-                            jumps.AddRange(GetJumps(leftJumpPosition));
+                            visited.Add(leftJumpPosition);
+                            jumps.AddRange(GetJumps(leftJumpPosition, piece, visited));
                         }
                     }
                 }
@@ -148,25 +170,29 @@ namespace Checkers.Models
             return jumps;
         }
 
-        private void MakeJump(Position currentPosition, Position newPosition)
+        private IEnumerable<Position> FindJumpCaptures(Position from, Position to)
         {
-            var piece = Pieces[currentPosition.Row, currentPosition.Column];
-            var jumps = GetJumps(currentPosition).ToList();
-
-            if (!jumps.Contains(newPosition))
+            var captures = new HashSet<Position>();
+            var jumps = GetJumps(from, Pieces[from.Row, from.Column]);
+            var path = new List<Position> {from};
+            
+            var found = true;
+            while (found)
             {
-                throw new System.InvalidOperationException("Invalid jump.");
+                found = false;
+                var jumpsCopy = jumps.ToList();
+            
+                // Iterate over the possible jumps
+                foreach (var next in from next in jumpsCopy where Math.Abs(next.Row - path.Last().Row) == 2 && Math.Abs(next.Column - path.Last().Column) == 2 let captured = new Position((next.Row + path.Last().Row) / 2, (next.Column + path.Last().Column) / 2) where captures.Add(captured) select next)
+                {
+                    path.Add(next);
+                    jumpsCopy.Remove(next);
+                    found = true;
+                    break;
+                }
             }
-
-            Pieces[newPosition.Row, newPosition.Column] = piece;
-            Pieces[currentPosition.Row, currentPosition.Column] = null;
-            Pieces[(currentPosition.Row + newPosition.Row) / 2, (currentPosition.Column + newPosition.Column) / 2] =
-                null;
-
-            if (piece.Color.IsUpgradable(newPosition))
-            {
-                UpdatePiece(newPosition);
-            }
+            
+            return captures;
         }
 
         public bool CheckForWin()
@@ -210,10 +236,10 @@ namespace Checkers.Models
             return Pieces[position.Row, position.Column] == null;
         }
 
-        private bool IsMoveJump(Position currentPosition, Position newPosition)
+        private static bool IsSimpleMove(Position currentPosition, Position newPosition)
         {
-            return System.Math.Abs(currentPosition.Row - newPosition.Row) == 2 &&
-                   System.Math.Abs(currentPosition.Column - newPosition.Column) == 2;
+            return System.Math.Abs(currentPosition.Row - newPosition.Row) == 1 &&
+                   System.Math.Abs(currentPosition.Column - newPosition.Column) == 1;
         }
 
         public bool IsPositionOccupied(Position position, EPieceColor color)

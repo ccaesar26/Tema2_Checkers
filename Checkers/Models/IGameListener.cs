@@ -5,5 +5,6 @@
         void OnMoveMade(Position from, Position to);
         void OnGameOver(EPieceColor? winner);
         void OnPieceUpdated(Position position, EPieceColor color);
+        void OnPlayerChanged(EPieceColor currentPlayer);
     }
 }

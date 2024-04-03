@@ -5,8 +5,123 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Checkers"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        xmlns:viewModels="clr-namespace:Checkers.ViewModels"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        Title="GamePage" Height="720" Width="960">
+    <Window.Resources>
+        <system:Double x:Key="ButtonWidth">80</system:Double>
+        <system:Double x:Key="ButtonHeight">32</system:Double>
+        <Thickness x:Key="ButtonMargin">8</Thickness>
+        <GridLength x:Key="SquareSize">42</GridLength>
+        <system:Double x:Key="SquareSizeD">64</system:Double>
+        <system:Double x:Key="BoardSizeD">576</system:Double>
+        <Thickness x:Key="SquarePadding">4</Thickness>
+    </Window.Resources>
+    <Window.DataContext>
+        <viewModels:GameViewModel/>
+    </Window.DataContext>
     <Grid>
-        
+        <StackPanel>
+            <Label 
+                Name="TitleLabel" 
+                Content="Checkers" 
+                FontSize="24" 
+                HorizontalContentAlignment="Center"
+                Margin="16"
+                />
+            <StackPanel 
+                Orientation="Horizontal" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center"
+                >
+                <StackPanel
+                    Name="ButtonPanel"
+                    Orientation="Vertical"
+                    Width="160"
+                    >
+                    <Button 
+                        Name="NewGameButton" 
+                        Content="New Game" 
+                        Width="{StaticResource ButtonWidth}"
+                        Height="{StaticResource ButtonHeight}"
+                        Margin="{StaticResource ButtonMargin}"
+                        />
+                    <Button
+                        Name="SaveButton"
+                        Content="Save"
+                        Width="{StaticResource ButtonWidth}"
+                        Height="{StaticResource ButtonHeight}"
+                        Margin="{StaticResource ButtonMargin}"
+                        />
+                    <Button
+                        Name="LoadButton"
+                        Content="Load"
+                        Width="{StaticResource ButtonWidth}"
+                        Height="{StaticResource ButtonHeight}"
+                        Margin="{StaticResource ButtonMargin}"
+                        />
+                </StackPanel>
+                <Grid>
+                    <Image Source="\Assets\board.png" Width="{StaticResource BoardSizeD}" Height="{StaticResource BoardSizeD}" Stretch="UniformToFill"/>
+                    
+                    <ItemsControl ItemsSource="{Binding Board}" Grid.Row="0" Grid.Column="0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="8" Columns="8"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="{StaticResource SquarePadding}">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPossibleMove}" Value="True">
+                                                    <Setter Property="Background" Value="Green"/> <!-- Change the background color for possible moves -->
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.InputBindings>
+                                        <MouseBinding 
+                                            MouseAction="LeftClick" 
+                                            Command="{Binding DataContext.PieceClickedCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                            CommandParameter="{Binding}" 
+                                        />
+                                    </Border.InputBindings>
+                                    <Image 
+                                        Source="{Binding PieceImagePath}" 
+                                        Width="{StaticResource SquareSizeD}" 
+                                        Height="{StaticResource SquareSizeD}" 
+                                        Stretch="UniformToFill"
+                                        >
+                                    </Image>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+                <StackPanel
+                    Name="GamePanel"
+                    Orientation="Vertical"
+                    Width="160"
+                    >
+                    <Label 
+                        Name="PlayerLabel" 
+                        Content="Current Player: " 
+                        FontSize="16" 
+                        HorizontalContentAlignment="Center"
+                        Margin="16"
+                        />
+                    <Label
+                        Name="TurnLabel"
+                        Content="{Binding CurrentPlayer}"
+                        FontSize="16"
+                        HorizontalContentAlignment="Center"
+                        Margin="16"
+                        />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </Window>
