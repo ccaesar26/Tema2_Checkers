@@ -1,6 +1,8 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Checkers.ViewModels;
+using Checkers.Views;
 
 namespace Checkers
 {
@@ -14,14 +16,17 @@ namespace Checkers
             InitializeComponent();
         }
         
-        private void Image_MouseDown(object sender, MouseButtonEventArgs e)
+        private void RadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            if (sender is not Image { DataContext: BoardSquare boardSquare }) return;
-            if (DataContext is GameViewModel { PieceClickedCommand: not null } viewModel)
-            {
-                viewModel.PieceClickedCommand.Execute(boardSquare);
-            }
+            var radioButton = (RadioButton)sender;
+            if (radioButton.IsChecked != true) return;
+            ((GameViewModel)DataContext).MultiJumps = radioButton.Content.ToString() == "Enabled";
         }
 
+        private void AboutButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            var aboutWindow = new AboutWindow();
+            aboutWindow.ShowDialog();
+        }
     }
 }

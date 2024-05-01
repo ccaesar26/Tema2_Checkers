@@ -1,0 +1,35 @@
+﻿<Window x:Class="Checkers.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:Checkers.Views"
+        mc:Ignorable="d"
+        Title="AboutWindow" Height="320" Width="460">
+    <Grid>
+        <StackPanel>
+            <Label
+                Content="About Checkers"
+                FontSize="20"
+                Margin="0,0,0,10"
+                />
+            <Label
+                Content="Created by: Cezar Constăndoiu"
+                />
+            <Label
+                Content="Email: cezar.constandoiu@student.unitbv.ro"
+                />
+            <Label
+                Content="Group: 10LF321"
+                />
+            <Label
+                Content="This is a simple checkers game created for the MVP course."
+                Margin="0,10,0,0"
+                />
+            <Image
+                Source="../Assets/icon.png"
+                Width="120"
+                />
+        </StackPanel>
+    </Grid>
+</Window>

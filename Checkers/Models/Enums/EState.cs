@@ -2,6 +2,7 @@
 {
     public enum EState
     {
+        Initial,
         Playing,
         WhiteWon,
         BlackWon,

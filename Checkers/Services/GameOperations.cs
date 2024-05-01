@@ -5,10 +5,18 @@ namespace Checkers.Services;
 
 public class GameOperations(GameViewModel gameViewModel)
 {
-    private GameViewModel _gameViewModel = gameViewModel;
-    
-    public void MakeMove(Position from, Position to)
+    public void Restart()
     {
-        _gameViewModel.MakeMove(from, to);
+        gameViewModel.Restart();
+    }
+    
+    public void SaveGame()
+    {
+        gameViewModel.SaveGame();
+    }
+    
+    public void LoadGame()
+    {
+        gameViewModel.LoadGame();
     }
 }

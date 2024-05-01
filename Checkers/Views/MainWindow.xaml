@@ -9,13 +9,17 @@
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         Title="GamePage" Height="720" Width="960">
     <Window.Resources>
-        <system:Double x:Key="ButtonWidth">80</system:Double>
-        <system:Double x:Key="ButtonHeight">32</system:Double>
+        <system:Double x:Key="ButtonWidth">140</system:Double>
+        <system:Double x:Key="ButtonHeight">40</system:Double>
         <Thickness x:Key="ButtonMargin">8</Thickness>
         <GridLength x:Key="SquareSize">42</GridLength>
         <system:Double x:Key="SquareSizeD">64</system:Double>
         <system:Double x:Key="BoardSizeD">576</system:Double>
         <Thickness x:Key="SquarePadding">4</Thickness>
+        <system:Double x:Key="TitleText">28</system:Double>
+        <system:Double x:Key="BiggerText">16</system:Double>
+        <system:Double x:Key="SmallerText">14</system:Double>
+        <system:Double x:Key="SideWidth">180</system:Double>
     </Window.Resources>
     <Window.DataContext>
         <viewModels:GameViewModel/>
@@ -25,7 +29,8 @@
             <Label 
                 Name="TitleLabel" 
                 Content="Checkers" 
-                FontSize="24" 
+                FontSize="{StaticResource TitleText}"
+                FontWeight="Bold"
                 HorizontalContentAlignment="Center"
                 Margin="16"
                 />
@@ -37,29 +42,78 @@
                 <StackPanel
                     Name="ButtonPanel"
                     Orientation="Vertical"
-                    Width="160"
+                    Width="{StaticResource SideWidth}"
                     >
                     <Button 
                         Name="NewGameButton" 
                         Content="New Game" 
+                        FontSize="{StaticResource BiggerText}"
                         Width="{StaticResource ButtonWidth}"
                         Height="{StaticResource ButtonHeight}"
                         Margin="{StaticResource ButtonMargin}"
+                        Command="{Binding RestartCommand}"
                         />
                     <Button
                         Name="SaveButton"
                         Content="Save"
+                        FontSize="{StaticResource BiggerText}"
                         Width="{StaticResource ButtonWidth}"
                         Height="{StaticResource ButtonHeight}"
                         Margin="{StaticResource ButtonMargin}"
+                        Command="{Binding SaveGameCommand}"
                         />
                     <Button
                         Name="LoadButton"
                         Content="Load"
+                        FontSize="{StaticResource BiggerText}"
                         Width="{StaticResource ButtonWidth}"
                         Height="{StaticResource ButtonHeight}"
                         Margin="{StaticResource ButtonMargin}"
+                        Command="{Binding LoadGameCommand}"
                         />
+                    <Button
+                        Name="AboutButton"
+                        Content="About"
+                        FontSize="{StaticResource BiggerText}"
+                        Width="{StaticResource ButtonWidth}"
+                        Height="{StaticResource ButtonHeight}"
+                        Margin="{StaticResource ButtonMargin}"
+                        Click="AboutButton_OnClick"
+                    />
+                    <Border 
+                        BorderThickness="1" 
+                        BorderBrush="Gray"
+                        Margin="{StaticResource ButtonMargin}"
+                        Width="{StaticResource ButtonWidth}"
+                        Padding="4"
+                        >
+                        <StackPanel>
+                            <Label
+                                Name="JumpOptionsLabel"
+                                Content="Multiple Jumps"
+                                FontSize="{StaticResource BiggerText}"
+                            />
+                            <RadioButton 
+                                Content="Enabled" 
+                                FontSize="{StaticResource SmallerText}"
+                                IsChecked="{Binding IsMultiJumpEnabled}"
+                                Checked="RadioButton_Checked"
+                                VerticalAlignment="Center"
+                                Margin="2"
+                                IsEnabled="{Binding IsNotStarted}"
+                            />
+                            <RadioButton 
+                                Content="Disabled" 
+                                FontSize="{StaticResource SmallerText}"
+                                IsChecked="{Binding IsMultiJumpDisabled}"
+                                Checked="RadioButton_Checked"
+                                VerticalAlignment="Center"
+                                Margin="2"
+                                IsEnabled="{Binding IsNotStarted}"
+                            />
+                        </StackPanel>
+                    </Border>
+                    
                 </StackPanel>
                 <Grid>
                     <Image Source="\Assets\board.png" Width="{StaticResource BoardSizeD}" Height="{StaticResource BoardSizeD}" Stretch="UniformToFill"/>
@@ -77,7 +131,7 @@
                                         <Style TargetType="Border">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsPossibleMove}" Value="True">
-                                                    <Setter Property="Background" Value="Green"/> <!-- Change the background color for possible moves -->
+                                                    <Setter Property="Background" Value="SeaGreen"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -104,22 +158,62 @@
                 <StackPanel
                     Name="GamePanel"
                     Orientation="Vertical"
-                    Width="160"
+                    Width="{StaticResource SideWidth}"
                     >
-                    <Label 
-                        Name="PlayerLabel" 
-                        Content="Current Player: " 
-                        FontSize="16" 
-                        HorizontalContentAlignment="Center"
-                        Margin="16"
-                        />
-                    <Label
-                        Name="TurnLabel"
-                        Content="{Binding CurrentPlayer}"
-                        FontSize="16"
-                        HorizontalContentAlignment="Center"
-                        Margin="16"
-                        />
+                    <Border
+                        BorderThickness="1" 
+                        BorderBrush="Gray"
+                        Margin="{StaticResource ButtonMargin}"
+                        Width="{StaticResource ButtonWidth}"
+                        Padding="4"
+                    >
+                        <StackPanel>
+                            <Label 
+                                Name="PlayerLabel" 
+                                Content="Current Player: " 
+                                FontSize="{StaticResource BiggerText}"
+                                HorizontalContentAlignment="Center"
+                            />
+                            <Label
+                                Name="TurnLabel"
+                                Content="{Binding CurrentPlayer}"
+                                FontSize="{StaticResource BiggerText}"
+                                FontWeight="DemiBold"
+                                HorizontalContentAlignment="Center"
+                            />
+                        </StackPanel>
+                    </Border>
+                    <Border
+                        BorderThickness="1" 
+                        BorderBrush="Gray"
+                        Margin="{StaticResource ButtonMargin}"
+                        Width="{StaticResource ButtonWidth}"
+                        Padding="4"
+                        >
+                        <StackPanel>
+                            <Label
+                                Name="LeaderLabel"
+                                Content="Leaderboard"
+                                FontSize="{StaticResource BiggerText}"
+                                HorizontalContentAlignment="Center"
+                            />
+                            <ItemsControl
+                                ItemsSource="{Binding Leaderboard}"
+                            >
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label 
+                                                Content="{Binding}"
+                                                FontSize="{StaticResource SmallerText}"
+                                            />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </StackPanel>
         </StackPanel>

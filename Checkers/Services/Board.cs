@@ -8,13 +8,29 @@ namespace Checkers.Models
     public class Board
     {
         public int Size { get; }
-        public Piece[,] Pieces { get; }
+
+        private readonly Piece[,] _pieces;
+        public int BlackPieces => _pieces.Cast<Piece>().Count(piece => piece?.Color == EPieceColor.Black);
+        public int WhitePieces => _pieces.Cast<Piece>().Count(piece => piece?.Color == EPieceColor.White);
+        public bool MultiJump { get; set; } = true;
 
         public Board(int size = 8)
         {
             Size = size;
-            Pieces = new Piece[size, size];
+            _pieces = new Piece[size, size];
             Initialize();
+        }
+        public Board(IReadOnlyList<Piece> pieces)
+        {
+            Size = (int)Math.Sqrt(pieces.Count);
+            _pieces = new Piece[Size, Size];
+            for (var row = 0; row < Size; row++)
+            {
+                for (var column = 0; column < Size; column++)
+                {
+                    _pieces[row, column] = pieces[row * Size + column];
+                }
+            }
         }
 
         private void Initialize()
@@ -25,11 +41,11 @@ namespace Checkers.Models
                 {
                     if (row < 3 && (row + column) % 2 == 1)
                     {
-                        Pieces[row, column] = new Man(EPieceColor.White);
+                        _pieces[row, column] = new Man(EPieceColor.White);
                     }
                     else if (row > Size - 4 && (row + column) % 2 == 1)
                     {
-                        Pieces[row, column] = new Man(EPieceColor.Black);
+                        _pieces[row, column] = new Man(EPieceColor.Black);
                     }
                 }
             }
@@ -42,7 +58,7 @@ namespace Checkers.Models
                 throw new System.InvalidOperationException("Invalid position.");
             }
 
-            var piece = Pieces[currentPosition.Row, currentPosition.Column];
+            var piece = _pieces[currentPosition.Row, currentPosition.Column];
             var moves = GetPossibleMoves(currentPosition).ToList();
 
             if (!moves.Contains(newPosition))
@@ -60,7 +76,7 @@ namespace Checkers.Models
                 var captures = FindJumpCaptures(currentPosition, newPosition);
                 foreach (var capture in captures)
                 {
-                    Pieces[capture.Row, capture.Column] = null;
+                    _pieces[capture.Row, capture.Column] = null;
                     if (piece.IsUpgradeable(new Position(capture.Row + piece.GetWays().First(), capture.Column)))
                     {
                         upgradeNeeded = true;
@@ -68,8 +84,8 @@ namespace Checkers.Models
                 }
             }
             
-            Pieces[newPosition.Row, newPosition.Column] = piece;
-            Pieces[currentPosition.Row, currentPosition.Column] = null;
+            _pieces[newPosition.Row, newPosition.Column] = piece;
+            _pieces[currentPosition.Row, currentPosition.Column] = null;
             
             if (upgradeNeeded)
             {
@@ -79,7 +95,7 @@ namespace Checkers.Models
 
         public IEnumerable<Position> GetPossibleMoves(Position position)
         {
-            var piece = Pieces[position.Row, position.Column];
+            var piece = _pieces[position.Row, position.Column];
             var moves = new List<Position>();
             var ways = piece.GetWays();
 
@@ -89,13 +105,17 @@ namespace Checkers.Models
                 if (position.Column + 1 < Size && position.Row + way >= 0 && position.Row + way < Size)
                 {
                     var rightPosition = new Position(position.Row + way, position.Column + 1);
-                    if (Pieces[rightPosition.Row, rightPosition.Column] == null)
+                    if (_pieces[rightPosition.Row, rightPosition.Column] == null)
                     {
                         moves.Add(rightPosition);
                     }
                     else if (IsPositionOccupied(rightPosition, piece.Color.Opposite()))
                     {
-                        moves.AddRange(GetJumps(position, piece));
+                        var paths = GetJumps(position, piece);
+                        foreach (var path in paths)
+                        {
+                            moves.AddRange(path);
+                        }
                     }
                 }
 
@@ -103,13 +123,18 @@ namespace Checkers.Models
                 if (position.Column - 1 >= 0 && position.Row + way >= 0 && position.Row + way < Size)
                 {
                     var leftPosition = new Position(position.Row + way, position.Column - 1);
-                    if (Pieces[leftPosition.Row, leftPosition.Column] == null)
+                    if (_pieces[leftPosition.Row, leftPosition.Column] == null)
                     {
                         moves.Add(leftPosition);
                     }
                     else if (IsPositionOccupied(leftPosition, piece.Color.Opposite()))
                     {
-                        moves.AddRange(GetJumps(position, piece));
+                        //moves.AddRange(GetJumps(position, piece));
+                        var paths = GetJumps(position, piece);
+                        foreach (var path in paths)
+                        {
+                            moves.AddRange(path);
+                        }
                     }
                 }
             }
@@ -117,11 +142,22 @@ namespace Checkers.Models
             return moves;
         }
 
-        private IEnumerable<Position> GetJumps(Position position, Piece piece, ISet<Position> visited = null)
+        private IEnumerable<List<Position>> GetJumps(Position position, Piece piece, ISet<Position> visited = null, List<Position> path = null)
         {
-            var jumps = new List<Position>();
+            var jumpPaths = new List<List<Position>>();
+
+            if (!MultiJump)
+            {
+                return jumpPaths;
+            }
             
             visited ??= new HashSet<Position>();
+            path ??= [];
+            
+            if (piece == null || !IsPositionValid(position))
+            {
+                return jumpPaths; // Return an empty list if the piece is null or the position is invalid
+            }
 
             if (piece.IsUpgradeable(position))
             {
@@ -136,15 +172,17 @@ namespace Checkers.Models
                 if (position.Column + 2 < Size && position.Row + way * 2 >= 0 && position.Row + way * 2 < Size)
                 {
                     var opponentPosition = new Position(position.Row + way, position.Column + 1);
-                    if (Pieces[opponentPosition.Row, opponentPosition.Column] != null &&
+                    if (_pieces[opponentPosition.Row, opponentPosition.Column] != null &&
                         IsPositionOccupied(opponentPosition, piece.Color.Opposite()))
                     {
                         var rightJumpPosition = new Position(position.Row + way * 2, position.Column + 2);
-                        if (Pieces[rightJumpPosition.Row, rightJumpPosition.Column] == null && !visited.Contains(rightJumpPosition))
+                        if (_pieces[rightJumpPosition.Row, rightJumpPosition.Column] == null && !visited.Contains(rightJumpPosition))
                         {
-                            jumps.Add(rightJumpPosition);
+                            var newPath = new List<Position>(path);
+                            newPath.Add(rightJumpPosition);
+                            jumpPaths.Add(newPath);
                             visited.Add(rightJumpPosition);
-                            jumps.AddRange(GetJumps(rightJumpPosition, piece, visited));
+                            jumpPaths.AddRange(GetJumps(rightJumpPosition, piece, visited, newPath));
                         }
                     }
                 }
@@ -153,43 +191,58 @@ namespace Checkers.Models
                 if (position.Column - 2 >= 0 && position.Row + way * 2 >= 0 && position.Row + way * 2 < Size)
                 {
                     var opponentPosition = new Position(position.Row + way, position.Column - 1);
-                    if (Pieces[opponentPosition.Row, opponentPosition.Column] != null &&
+                    if (_pieces[opponentPosition.Row, opponentPosition.Column] != null &&
                         IsPositionOccupied(opponentPosition, piece.Color.Opposite()))
                     {
                         var leftJumpPosition = new Position(position.Row + way * 2, position.Column - 2);
-                        if (Pieces[leftJumpPosition.Row, leftJumpPosition.Column] == null && !visited.Contains(leftJumpPosition))
+                        if (_pieces[leftJumpPosition.Row, leftJumpPosition.Column] == null && !visited.Contains(leftJumpPosition))
                         {
-                            jumps.Add(leftJumpPosition);
+                            var newPath = new List<Position>(path) { leftJumpPosition };
+                            jumpPaths.Add(newPath);
                             visited.Add(leftJumpPosition);
-                            jumps.AddRange(GetJumps(leftJumpPosition, piece, visited));
+                            jumpPaths.AddRange(GetJumps(leftJumpPosition, piece, visited, newPath));
                         }
                     }
                 }
             }
 
-            return jumps;
+            return jumpPaths;
         }
 
         private IEnumerable<Position> FindJumpCaptures(Position from, Position to)
         {
             var captures = new HashSet<Position>();
-            var jumps = GetJumps(from, Pieces[from.Row, from.Column]);
-            var path = new List<Position> {from};
-            
-            var found = true;
-            while (found)
+            var paths = GetJumps(from, _pieces[from.Row, from.Column]);
+            var longestPath = new List<Position>();
+
+            foreach (var path in paths)
             {
-                found = false;
-                var jumpsCopy = jumps.ToList();
+                path.Insert(0, from);
+            }
             
-                // Iterate over the possible jumps
-                foreach (var next in from next in jumpsCopy where Math.Abs(next.Row - path.Last().Row) == 2 && Math.Abs(next.Column - path.Last().Column) == 2 let captured = new Position((next.Row + path.Last().Row) / 2, (next.Column + path.Last().Column) / 2) where captures.Add(captured) select next)
+            foreach (var path in paths)
+            {
+                if (path.Count != path.Distinct().ToList().Count)
                 {
-                    path.Add(next);
-                    jumpsCopy.Remove(next);
-                    found = true;
-                    break;
+                    continue;
                 }
+                
+                var reversedPath = new List<Position>(path);
+                reversedPath.Reverse();
+                if (path.Last().Equals(to) && path.Count > longestPath.Count)
+                {
+                    longestPath = path;
+                }
+                if (reversedPath.Last().Equals(to) && reversedPath.Count > longestPath.Count)
+                {
+                    longestPath = reversedPath;
+                }
+            }
+            
+            for (var i = 0; i < longestPath.Count - 1; i++)
+            {
+                var capture = new Position((longestPath[i].Row + longestPath[i + 1].Row) / 2, (longestPath[i].Column + longestPath[i + 1].Column) / 2);
+                captures.Add(capture);
             }
             
             return captures;
@@ -197,33 +250,12 @@ namespace Checkers.Models
 
         public bool CheckForWin()
         {
-            var blackPieces = 0;
-            var whitePieces = 0;
-
-            for (var row = 0; row < Size; row++)
-            {
-                for (var column = 0; column < Size; column++)
-                {
-                    if (Pieces[row, column] != null)
-                    {
-                        if (Pieces[row, column].Color == EPieceColor.Black)
-                        {
-                            blackPieces++;
-                        }
-                        else
-                        {
-                            whitePieces++;
-                        }
-                    }
-                }
-            }
-
-            return blackPieces == 0 || whitePieces == 0;
+            return BlackPieces == 0 || WhitePieces == 0;
         }
 
         public Piece GetPiece(Position from)
         {
-            return Pieces[from.Row, from.Column];
+            return _pieces[from.Row, from.Column];
         }
 
         private bool IsPositionValid(Position position)
@@ -233,7 +265,7 @@ namespace Checkers.Models
 
         private bool IsPositionEmpty(Position position)
         {
-            return Pieces[position.Row, position.Column] == null;
+            return _pieces[position.Row, position.Column] == null;
         }
 
         private static bool IsSimpleMove(Position currentPosition, Position newPosition)
@@ -242,15 +274,15 @@ namespace Checkers.Models
                    System.Math.Abs(currentPosition.Column - newPosition.Column) == 1;
         }
 
-        public bool IsPositionOccupied(Position position, EPieceColor color)
+        private bool IsPositionOccupied(Position position, EPieceColor color)
         {
-            return Pieces[position.Row, position.Column] != null &&
-                   Pieces[position.Row, position.Column].Color == color;
+            return _pieces[position.Row, position.Column] != null &&
+                   _pieces[position.Row, position.Column].Color == color;
         }
 
         private void UpdatePiece(Position position)
         {
-            Pieces[position.Row, position.Column] = new King(Pieces[position.Row, position.Column].Color);
+            _pieces[position.Row, position.Column] = new King(_pieces[position.Row, position.Column].Color);
         }
     }
 }

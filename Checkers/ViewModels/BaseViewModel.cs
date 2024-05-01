@@ -1,14 +1,13 @@
 ﻿using System.ComponentModel;
 
-namespace Checkers.ViewModels
-{
-    public class BaseViewModel : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler PropertyChanged;
+namespace Checkers.ViewModels;
 
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+public class BaseViewModel : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
